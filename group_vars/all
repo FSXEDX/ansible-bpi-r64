@@ -1,0 +1,9 @@
+# currently used VPS
+current_vpn: paris-vpn-aws-t2-micro-1
+#current_vpn: frankfurt-vpn-d0-starter-1
+
+
+# list of admin ids
+# at least one admin id is required for alerting to Telegram
+telegram_bot_admins:
+- 1 # admin

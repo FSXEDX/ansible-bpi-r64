@@ -1,0 +1,74 @@
+groups:
+- name: system
+  rules:
+  - alert: HighLoadAverage
+    # number of cores: https://github.com/prometheus/node_exporter/issues/1369#issuecomment-500109165
+    expr: node_load5 / count without(cpu, mode) (node_cpu_seconds_total{mode="idle"}) > 1.5
+    for: 5m
+    labels:
+     severity: "warning"
+    annotations:
+      summary: "High Load Average at {{$labels.hostname}}"
+
+  - alert: LowAvailMem
+    expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100 < 10
+    for: 3m
+    labels:
+     severity: "warning"
+    annotations:
+      summary: 'Low available memory at {{$labels.hostname}}: {{$value | printf "%.1f"}}'
+
+  - alert: LowFsFreeInodes
+    # traditional unix filesystem should be checked for free inodes (extX, e.g.)
+    # btrfs, zfs, reiserfs and to some extent xfs doesn't have such limit
+    expr: node_filesystem_files_free{fstype =~ "tmpfs|ext4"} / node_filesystem_files * 100 < 10
+    for: 3m
+    labels:
+     severity: "warning"
+    annotations:
+      summary: 'Low number of free inodes({{$value | printf "%.1f"}}%) at {{$labels.hostname}}. Mountpoint={{$labels.mountpoint}}. Use df -i to see that.'
+
+  - alert: LowFsFreeSpace
+    expr: node_filesystem_avail_bytes / node_filesystem_size_bytes * 100 < 10
+    for: 3m
+    labels:
+     severity: "warning"
+    annotations:
+      summary: 'Low free disk space({{$value | printf "%.1f"}}%) at {{$labels.hostname}}. Mountpoint={{$labels.mountpoint}}'
+
+  - alert: CpuBusyCore
+    # [2m] => to get points all points over last 2 minutes => scrape_interval: 60s => 2 points
+    # rate => average rate per second, using all points
+    # irate => takes 2 last points and calculates (last) rate
+    # count (expr) by (labels) => to aggregate multiple alerts by label(s) with function "count"
+    expr: count(irate(node_cpu_seconds_total{mode="idle"}[2m]) * 100 < 5) by (hostname)
+
+    for: 20m
+    labels:
+     severity: "warning"
+    annotations:
+      summary: '{{$value | printf "%.0f" }} busy CPU cores at {{$labels.hostname}}'
+
+  - alert: HighCpuUsage
+    expr: 100 - (sum(irate(node_cpu_seconds_total{mode="idle"}[2m])) by (hostname) / count(node_cpu_seconds_total{mode="idle"}) by (hostname) * 100) > 80
+    for: 20m
+    labels:
+     severity: "high"
+    annotations:
+      summary: 'High CPU usage at {{$labels.hostname}}: {{$value | printf "%.0f"}}%'
+
+  - alert: HostGrowingDiskReadLatency
+    expr: rate(node_disk_read_time_seconds_total[2m]) / rate(node_disk_reads_completed_total[2m]) > 100
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Disk latency at {{$labels.hostname}} is growing (read operations > 100ms)\n  VALUE = {{ $value }}\n  DEVICE: {{$labels.device}}"
+
+  - alert: HostGrowingDiskWriteLatency
+    expr: rate(node_disk_write_time_seconds_total[2m]) / rate(node_disk_writes_completed_total[2m]) > 100
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Disk latency at {{$labels.hostname}} is growing (write operations > 100ms)\n  VALUE = {{ $value }}\n  DEVICE: {{$labels.device}}"

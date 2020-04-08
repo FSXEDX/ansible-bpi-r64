@@ -1,0 +1,8 @@
+[routers]
+hm-bananapi-1
+bpi-preprod-1
+bpi-preprod-2
+
+[monitoring]
+monitoring-preprod
+monitoring-prod

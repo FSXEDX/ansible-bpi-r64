@@ -1,0 +1,35 @@
+#!/bin/bash
+
+SUCCESS=1
+
+state_dir=/var/tmp/rkn_blacklist
+
+mkdir -p $state_dir/list
+
+cd $state_dir/list
+wget -N https://antifilter.download/list/ipsum.lst https://antifilter.download/list/subnet.lst
+if [ $? -eq 0 ]; then
+    :
+else
+    SUCCESS=0
+    logger "Failed to fetch data from https://antifilter.download";
+fi
+
+old=$(cat $state_dir/md5.txt);
+new=$(cat $state_dir/list/*.lst | md5sum | head -c 32);
+
+if [ "$old" != "$new" ]
+then
+  cat $state_dir/list/ipsum.lst | sed 's_.*_route & reject;_' > /etc/bird/ipsum.txt
+  cat $state_dir/list/subnet.lst | sed 's_.*_route & reject;_' > /etc/bird/subnet.txt
+  /usr/sbin/birdc configure;
+  logger "RKN list reconfigured";
+  echo $new > $state_dir/md5.txt;
+fi
+
+prom_collect_path=/var/lib/prometheus/node-exporter
+{
+    echo "# HELP antifilter_download_status Value is 1 if succeeded download RKN lists from antifilter.download, 0 otherwise."
+    echo "# TYPE antifilter_download_status gauge"
+    echo "antifilter_download_status $SUCCESS"
+} | env TMPDIR=${prom_collect_path} sponge ${prom_collect_path}/antifilter_download_metrics.prom

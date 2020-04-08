@@ -1,0 +1,44 @@
+# to get logs use "systemctl status bird" / "journalctl -u bird"
+log syslog all;
+
+# BIRD's router ID. It's a world-wide unique identification of your router, usually one of router's IPv4 addresses
+router id 172.30.0.10;
+
+# represents kernel routes table(s)
+protocol kernel {
+        # after every 60 seconds scan kernel route tables
+        # to update bird's table
+        # bird itself updates kernel tables in case of changes
+        scan time 60;
+
+        # not to import from kernel table
+        import none;
+        # export everything
+        export all;
+}
+
+# Except for very unusual circumstances, you probably should include this protocol in the configuration since
+# almost all other protocols require network interfaces to be defined for them to work with.
+protocol device {
+        # On systems where we are notified about interface status changes asynchronously (such as newer versions of Linux),
+        # we need to scan the list only in order to avoid confusion by lost notification messages, so the default time is set to a large value.
+        scan time 60;
+}
+
+protocol bgp OurVPN {
+        description "Our VPN";
+        neighbor 172.30.0.9 as 64999;
+        # what to import from neighbor
+        import filter { gw = bgp_next_hop; accept; };
+        #import filter { gw = 172.30.0.10; accept; };
+        # what to export to neighbor
+        export none;
+        # explicit but needless way to say, that we are gateway
+        next hop self;
+        # required, our AS
+        local as 64999;
+        # address for BGP session
+        source address 172.30.0.10;
+        # to connect ourselves or to listen
+        passive off;
+}

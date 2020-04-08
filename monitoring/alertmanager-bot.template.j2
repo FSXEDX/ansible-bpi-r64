@@ -1,0 +1,12 @@
+#jinja2:variable_start_string:'[%', variable_end_string:'%]', trim_blocks: False
+{{ define "telegram.default" }}
+{{ range .Alerts }}
+{{ if eq .Status "firing"}}🔥 <b>{{ .Status | toUpper }}</b> 🔥{{ else }}<b>{{ .Status | toUpper }}</b>{{ end }}
+<b>{{ .Labels.alertname }}</b>
+{{ .Annotations.summary }}
+Duration: {{ duration .StartsAt .EndsAt }}{{ if ne .Status "firing"}}
+Ended: {{ .EndsAt | since }}{{ end }}
+{{ end }}
+{{- /* Telegram ignores links non tld, e.g. localhost is not ok, localhost.net - ok */ -}}
+<a href="{{ (index .Alerts 0).GeneratorURL | reReplaceAll "tab=1" "tab=0" | reReplaceAll ":9090" ".prometheus:9090" }}">Graph</a>
+{{ end }}

@@ -1,0 +1,40 @@
+log syslog all;
+
+router id 172.30.0.9;
+
+protocol kernel {
+        scan time 60;
+
+        import none;
+        export none;
+}
+
+# Except for very unusual circumstances, you probably should include this protocol in the configuration since
+# almost all other protocols require network interfaces to be defined for them to work with.
+protocol device {
+        # On systems where we are notified about interface status changes asynchronously (such as newer versions of Linux),
+        # we need to scan the list only in order to avoid confusion by lost notification messages, so the default time is set to a large value.
+        scan time 60;
+}
+
+# The Static protocol doesn't communicate with other routers in the network, but instead it allows you to define routes manually.
+protocol static static_bgp {
+    # multiple records like "route 1.32.194.0/24 reject;" means drop packet
+    # why to use drop = "reject":
+    # https://gitlab.labs.nic.cz/labs/bird/wikis/BGP_example_1 :
+    # These prefixes are represented as unreachable routes, which seems strange but it does not matter for BGP
+    # and has a secondary advantage that packets for AS-local but unreachable destinations are rejected and not sent to the upstream.
+    include "subnet.txt";
+    include "ipsum.txt";
+}
+
+protocol bgp OurRouter {
+        description "Our Router";
+        neighbor 172.30.0.10 as 64999;
+        import none;
+        export where proto = "static_bgp";
+        next hop self;
+        local as 64999;
+        source address 172.30.0.9;
+        passive off;
+}

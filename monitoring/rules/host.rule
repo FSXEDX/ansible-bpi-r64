@@ -1,0 +1,17 @@
+groups:
+- name: host
+  rules:
+  - alert: HostDown
+    expr: up == 0
+    for: 2m
+    labels:
+     severity: "warning"
+    annotations:
+      summary: "node_exporter for {{$labels.hostname}} unreachable at {{$labels.instance}}"
+  - alert: EdgeRebooted
+    expr: time() - node_boot_time_seconds < 300
+    for: 2m
+    labels:
+     severity: "warning"
+    annotations:
+      summary: "Host {{$labels.hostname}} rebooted"

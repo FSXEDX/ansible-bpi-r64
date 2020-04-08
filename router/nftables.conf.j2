@@ -1,0 +1,6 @@
+table ip my_nat {
+     chain my_masquerade {
+        type nat hook postrouting priority 100; policy accept;
+        oif "wan" masquerade
+     }
+}

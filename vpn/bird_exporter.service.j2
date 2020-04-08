@@ -1,0 +1,10 @@
+[Unit]
+Description=Bird Exporter Service
+After=bird.service
+
+[Service]
+ExecStart=/usr/local/sbin/bird_exporter -format.new=true -web.listen-address {{ listen_address }}:9324 -bird.socket /run/bird/bird.ctl -bird.ipv6=false
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

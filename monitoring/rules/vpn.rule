@@ -1,0 +1,34 @@
+groups:
+- name: net
+  rules:
+  - alert: NodeVPNTroubles
+    expr: vpn_latency_ms == 0
+    for: 3m
+    labels:
+     severity: "warning"
+    annotations:
+      summary: 'Check VPN connectivity({{$labels.vpn_ip_address}}) at {{$labels.hostname}}'
+
+  - alert: BirdVPNTroubles
+    expr: bird_protocol_up{name="OurRouter"} == 0
+    for: 3m
+    labels:
+     severity: "warning"
+    annotations:
+      summary: 'BGP session to OurRouter failed from {{$labels.hostname}}'
+
+  - alert: AntifilterDownloadTroubles
+    expr: antifilter_download_status == 0
+    for: 3m
+    labels:
+     severity: "warning"
+    annotations:
+      summary: 'Failed to download RKN lists from antifilter.download at {{$labels.hostname}}'
+
+  - alert: SiteTroubles
+    expr: probe_success == 0
+    for: 3m
+    labels:
+     severity: "warning"
+    annotations:
+      summary: 'Failed to reach {{$labels.instance}} at {{$labels.hostname}}'

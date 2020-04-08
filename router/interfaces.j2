@@ -1,0 +1,23 @@
+auto lo
+iface lo inet loopback
+
+auto eth0
+# need to up it AND before lanX/br0 => manual is just fine for it
+iface eth0 inet manual
+
+auto br0
+iface br0 inet static
+  bridge_ports lan1 lan2 lan3
+  address 172.30.1.1/25
+
+auto wan
+iface wan inet dhcp
+
+{% if router0 is defined %}
+auto router0
+iface router0 inet manual
+{% endif %}
+
+#auto wlan0
+#iface wlan0 inet static
+#  address 172.30.1.129/25

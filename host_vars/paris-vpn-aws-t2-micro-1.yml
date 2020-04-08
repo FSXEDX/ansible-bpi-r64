@@ -1,0 +1,3 @@
+# public IP addres for Wireguard connection from router
+# required
+public-ip: 1.1.1.1

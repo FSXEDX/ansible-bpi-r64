@@ -1,0 +1,24 @@
+[Interface]
+# hm-bananapi-1
+PrivateKey = {{ private_key }}
+ListenPort = 54321
+
+Address = 172.30.0.10/29
+#DNS = 1.1.1.1
+Table = off
+
+# :KLUDGE: how to exclude vpn address from possible routing to wireguard better
+PostUp   = ip route add {{ peer_public_ip }}/32 via `ip -4 route list 0/0 | cut -d ' ' -f 3` dev wan
+PostDown = ip route del {{ peer_public_ip }}/32 via `ip -4 route list 0/0 | cut -d ' ' -f 3` dev wan
+
+######################################
+
+[Peer]
+# paris-vpn-aws-t2-micro-1
+PublicKey = {{ peer_public_key }}
+AllowedIPs = 172.30.0.9/32
+
+AllowedIPs = 0.0.0.0/0, ::/0
+
+Endpoint = {{ peer_public_ip }}:54321
+PersistentKeepalive = 25

@@ -1,0 +1,19 @@
+[Interface]
+# paris-vpn-aws-t2-micro-1
+PrivateKey = {{ private_key }}
+ListenPort = 54321
+
+#Address = 172.30.3.1/24
+Address = 172.30.0.9/16
+
+PostUp   = iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+PostDown = iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
+
+######################################
+
+[Peer]
+# estonta-enkursigilo
+PublicKey = {{ peer_public_key }}
+
+AllowedIPs = 172.30.0.10/32
+AllowedIPs = 172.30.1.0/24

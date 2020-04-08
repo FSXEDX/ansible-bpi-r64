@@ -1,0 +1,3 @@
+# reserved VPS from DO, not used in this example
+# see group_vars/all: current_vpn
+public-ip: 2.2.2.2
